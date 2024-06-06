@@ -1,6 +1,9 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 export default function EntryItem() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   const initialData = {
     name: "",
     chef: "",
@@ -12,26 +15,72 @@ export default function EntryItem() {
   };
   const [item, setItem] = useState(initialData);
 
+  //   create a item
   const handleSubmit = async (e) => {
-    console.log(item);
     e.preventDefault();
-    try {
-      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/coffees`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(item),
-      });
-      if (res.status === 201) {
-        const data = await res.json();
-        alert(data?.message);
-        console.log(data);
+    if (id) {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/coffees/${id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(item),
+          }
+        );
+        if (res.status === 200) {
+          const data = await res.json();
+          console.log(data);
+          alert("updated");
+          navigate('/')
+        }
+      } catch (err) {
+        console.log(err);
       }
-    } catch (err) {
-      console.log(err);
+    } else {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/coffees`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(item),
+        });
+        if (res.status === 201) {
+          const data = await res.json();
+          alert(data?.message);
+          navigate('/')
+        }
+      } catch (err) {
+        console.log(err);
+      }
     }
   };
+
+  //   retrieve a item to update when id is available
+  useEffect(() => {
+    const getItem = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/coffees/${id}`
+        );
+        if (res.status === 200) {
+          const data = await res.json();
+          const { _id, ...restInfo } = data;
+          setItem(restInfo);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    if (id) {
+      getItem();
+    } else {
+      setItem(initialData);
+    }
+  }, [id]);
 
   return (
     <section className="max-w-4xl p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800 my-5">
@@ -110,7 +159,10 @@ export default function EntryItem() {
             />
           </div>
           <div>
-            <label className="text-gray-700 dark:text-gray-200" htmlFor="details">
+            <label
+              className="text-gray-700 dark:text-gray-200"
+              htmlFor="details"
+            >
               Details
             </label>
             <input
@@ -139,7 +191,7 @@ export default function EntryItem() {
           <input
             className="w-full py-2.5 leading-5 text-white transition-colors duration-300 transform bg-gray-700 rounded-md hover:bg-gray-600 focus:outline-none focus:bg-gray-600"
             type="submit"
-            value="Add Coffee"
+            value={id ? 'Update Item' : 'Create Item'}
           />
         </div>
       </form>
