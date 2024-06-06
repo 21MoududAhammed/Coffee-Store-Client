@@ -13,8 +13,24 @@ export default function EntryItem() {
   const [item, setItem] = useState(initialData);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
     console.log(item);
+    e.preventDefault();
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/coffees`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(item),
+      });
+      if (res.status === 201) {
+        const data = await res.json();
+        alert(data?.message);
+        console.log(data);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -94,11 +110,11 @@ export default function EntryItem() {
             />
           </div>
           <div>
-            <label className="text-gray-700 dark:text-gray-200" htmlFor="taste">
+            <label className="text-gray-700 dark:text-gray-200" htmlFor="details">
               Details
             </label>
             <input
-              id="taste"
+              id="details"
               type="text"
               className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
               value={item.details}
